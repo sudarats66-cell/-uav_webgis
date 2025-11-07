@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>กราฟเส้น: จำนวนนักเรียนต่อหลักสูตร</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="agi67.js"></script> <!-- โหลดไฟล์ข้อมูล -->
+<style>
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    margin: 0;
+    background-color: #f8fafc;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+  #chartContainer {
+    width: 90%;
+    max-width: 900px;
+  }
+</style>
+</head>
+<body>
+
+<div id="chartContainer">
+  <canvas id="myChart"></canvas>
+</div>
+
+<script>
+window.onload = () => {
+  const ctx = document.getElementById('myChart').getContext('2d');
+
+  // นับจำนวนนักเรียนในแต่ละหลักสูตร
+  const counts = {};
+  myData.features.forEach(feature => {
+    const course = feature.properties.หลักสูตร.trim();
+    if (!counts[course]) counts[course] = 0;
+    counts[course]++;
+  });
+
+  const labels = Object.keys(counts);
+  const data = Object.values(counts);
+
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'จำนวนนักเรียน',
+        data: data,
+        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+        borderColor: 'rgba(54, 162, 235, 1)',
+        borderWidth: 2,
+        fill: true,
+        tension: 0.3,
+        pointRadius: 5,
+        pointBackgroundColor: 'rgba(54, 162, 235, 1)'
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'top' },
+        title: {
+          display: true,
+          text: 'จำนวนนักเรียนในแต่ละหลักสูตร (กราฟเส้น)'
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: 'จำนวน (คน)'
+          }
+        },
+        x: {
+          title: {
+            display: true,
+            text: 'หลักสูตร'
+          }
+        }
+      }
+    }
+  });
+};
+</script>
+
+</body>
+</html>

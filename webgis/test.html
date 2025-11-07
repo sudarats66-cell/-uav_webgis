@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>ที่พักในจังหวัดลำปาง</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<style>
+  body { margin: 0; font-family: Arial, sans-serif; }
+  h2 { text-align: center; margin: 15px 0; }
+  .container { display: flex; height: calc(100vh - 60px); }
+  #map { flex: 1; height: 100%; }
+  .sidebar { width: 40px; background: #f8f8f8; padding: 10px; box-shadow: -2px 0 5px rgba(0,0,0,0.2); overflow-y: auto; transition: width 0.3s; position: relative; }
+  .sidebar.expanded { width: 280px; }
+  .sidebar:hover { width: 280px; }
+  .toggle-btn { display: block; margin-bottom: 10px; cursor: pointer; background: #007bff; color: white; padding: 5px 10px; border-radius: 3px; text-align: center; }
+  .legend-item { cursor: pointer; margin-bottom: 5px; display: flex; align-items: center; }
+  .legend-item i { width: 18px; height: 18px; display: inline-block; margin-right: 8px; opacity: 0.8; }
+  .layer-toggle { margin-bottom: 15px; }
+  .sidebar h4 { margin: 10px 0 5px 0; border-bottom: 1px solid #ccc; padding-bottom: 3px; }
+  .sidebar:not(:hover) .layer-toggle, .sidebar:not(:hover) .legend-item, .sidebar:not(:hover) h4 { display: none; }
+</style>
+</head>
+<body>
+
+<h2>ที่พักในจังหวัดลำปาง</h2>
+
+<div class="container">
+  <div id="map"></div>
+
+  <div class="sidebar" id="sidebar">
+    <div class="toggle-btn" id="toggleSidebar">☰</div>
+
+    <h4>Base Map</h4>
+    <div class="layer-toggle">
+      <input type="radio" name="basemap" value="OpenStreetMap" checked> OpenStreetMap<br>
+      <input type="radio" name="basemap" value="Google Map"> Google Map<br>
+      <input type="radio" name="basemap" value="Esri Imagery"> Esri Imagery<br>
+    </div>
+
+    <h4>Overlay</h4>
+    <div class="layer-toggle">
+      <input type="checkbox" id="overlayAccommodations" checked> ที่พักในลำปาง<br>
+      <input type="checkbox" id="overlayAmphoe" checked> ขอบเขตอำเภอจังหวัดลำปาง<br>
+      <input type="checkbox" id="overlayRoad" checked>ถนนสายหลัก สำนักงานทางหลวงที่ 1<br>
+      <input type="checkbox" id="overlayPoint" checked> สถานที่ท่องเที่ยวแนะนำในจังหวัดลำปาง<br>
+    </div>
+
+    <h4>Legend (ประเภทที่พัก)</h4>
+    <div id="legend"></div>
+  </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
+<script>
+// =================== Map setup ===================
+var map = L.map('map').setView([18.288, 99.507], 11);
+
+// Base Layers
+var openstreetmap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18}).addTo(map);
+var google_map = L.tileLayer('https://mt1.google.com/vt/lyrs=r&x={x}&y={y}&z={z}', {maxZoom:18});
+var EsriWorldImagery = L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {maxZoom:18});
+
+var baseLayers = {
+  "OpenStreetMap": openstreetmap,
+  "Google Map": google_map,
+  "Esri Imagery": EsriWorldImagery
+};
+
+// =================== WMS Layers ===================
+var lampang_amphoe = L.tileLayer.wms('http://localhost:8080/geoserver/lampang/wms', { layers: 'lampang:amarea_lampang', format: 'image/png', transparent: true, tiled: true });
+var lampang_road = L.tileLayer.wms('http://localhost:8080/geoserver/lampang/wms', { layers: 'lampang:528', format: 'image/png', transparent: true, tiled: true });
+var lampang_roads = L.tileLayer.wms('http://localhost:8080/geoserver/lampang/wms', { layers: 'lampang:523', format: 'image/png', transparent: true, tiled: true });
+var roadsGroup = L.layerGroup([lampang_road, lampang_roads]);
+var lampang_point = L.tileLayer.wms('http://localhost:8080/geoserver/lampang/wms', { layers: 'lampang:tourist', format: 'image/png', transparent: true, tiled: true });
+
+// =================== Overlay Marker Cluster ===================
+var accommodationsLayer = L.markerClusterGroup();
+var allMarkers = [];
+var categoryColors = {
+  "Hotel": "#e41a1c","Resort": "#377eb8","Guesthouse": "#4daf4a","Boutique Hotel": "#984ea3",
+  "Cottage/Guesthouse": "#ff7f00","Hostel": "#ffff33","Apartment/Hotel": "#a65628",
+  "Lodge/Hotel": "#f781bf","Airport Hotel": "#999999"
+};
+
+// =================== Load JSON ===================
+fetch('json_sql.php')
+  .then(res => res.json())
+  .then(data => {
+    data.features.forEach(f => {
+      var coords = f.geometry.coordinates;
+      var props = f.properties;
+      var color = categoryColors[props.category] || "#000000";
+
+      var marker = L.circleMarker([coords[1], coords[0]], {
+        radius: 8,
+        fillColor: color,
+        color: "#000",
+        weight: 1,
+        opacity: 1,
+        fillOpacity: 0.8
+      }).bindPopup(`
+        <b>${props.name}</b><br>
+        <b>ประเภท:</b> ${props.category}<br>
+        <b>ที่อยู่:</b> ${props.address}<br>
+        <b>เวลาเปิด-ปิด:</b> ${props.opening_hours || 'ไม่ระบุ'}<br>
+        <b>คะแนน:</b> ${props.rating || 'ไม่มี'}<br>
+        <b>สิ่งอำนวยความสะดวก:</b> ${props.facilities || 'ไม่ระบุ'}
+      `);
+
+      marker.category = props.category;
+      allMarkers.push(marker);
+      accommodationsLayer.addLayer(marker);
+    });
+
+    if(document.getElementById('overlayAccommodations').checked) accommodationsLayer.addTo(map);
+    renderLegend();
+  });
+
+// =================== Legend ===================
+function renderLegend() {
+  var legendDiv = document.getElementById('legend');
+  legendDiv.innerHTML = '';
+  for (var cat in categoryColors) {
+    var item = document.createElement('div');
+    item.className = 'legend-item';
+    item.innerHTML = `<i style="background:${categoryColors[cat]}"></i>${cat}`;
+    item.onclick = (function(c){ return function(){ filterCategory(c); } })(cat);
+    legendDiv.appendChild(item);
+  }
+  var allItem = document.createElement('div');
+  allItem.className = 'legend-item';
+  allItem.innerHTML = `<i style="background:#000"></i>ทั้งหมด`;
+  allItem.onclick = function(){ filterCategory('All'); };
+  legendDiv.appendChild(allItem);
+}
+
+function filterCategory(category) {
+  accommodationsLayer.clearLayers();
+  allMarkers.forEach(marker => {
+    if (category === 'All' || marker.category === category) accommodationsLayer.addLayer(marker);
+  });
+}
+
+
+// =================== Overlay toggles ===================
+if(document.getElementById('overlayAmphoe').checked) lampang_amphoe.addTo(map);
+if(document.getElementById('overlayRoad').checked) roadsGroup.addTo(map);
+if(document.getElementById('overlayPoint').checked) lampang_point.addTo(map);
+if(document.getElementById('overlayAccommodations').checked) accommodationsLayer.addTo(map);
+
+
+document.getElementById('overlayAccommodations').addEventListener('change', function() {
+  if(this.checked) map.addLayer(accommodationsLayer); else map.removeLayer(accommodationsLayer);
+});
+document.getElementById('overlayAmphoe').addEventListener('change', function() {
+  if(this.checked) map.addLayer(lampang_amphoe); else map.removeLayer(lampang_amphoe);
+});
+document.getElementById('overlayRoad').addEventListener('change', function() {
+  if(this.checked) map.addLayer(roadsGroup); else map.removeLayer(roadsGroup);
+});
+document.getElementById('overlayPoint').addEventListener('change', function() {
+  if(this.checked) map.addLayer(lampang_point); else map.removeLayer(lampang_point);
+});
+
+
+// =================== Base map toggle ===================
+document.querySelectorAll('input[name="basemap"]').forEach(input=>{
+    input.addEventListener('change', function(){
+        for(var key in baseLayers) map.removeLayer(baseLayers[key]);
+        baseLayers[this.value].addTo(map);
+    });
+});
+
+// =================== Sidebar toggle ===================
+document.getElementById('toggleSidebar').addEventListener('click', function(){
+    document.getElementById('sidebar').classList.toggle('expanded');
+});
+</script>
+</body>
+</html>

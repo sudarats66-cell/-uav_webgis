@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>แผนที่จาก agi67.js</title>
+
+<!-- Leaflet -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<style>
+  html, body {
+    height: 100%;
+    margin: 0;
+  }
+  #map {
+    width: 100%;
+    height: 100%;
+  }
+</style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<script src="agi67.js"></script>
+<script>
+  // สร้างแผนที่
+  const map = L.map('map').setView([15.7, 100.1], 7);
+
+  // แผนที่พื้นหลัง
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+  }).addTo(map);
+
+  // แสดงจุดจาก myData
+  L.geoJSON(myData, {
+    onEachFeature: function (feature, layer) {
+      const props = feature.properties;
+      const popupContent = `
+        <strong>${props.s_name}</strong><br/>
+        หลักสูตร: ${props.หลักสูตร}<br/>
+        ภาควิชา: ${props.ภาควิชา}<br/>
+        คณะ: ${props.คณะ}<br/>
+        จาก: ${props.จบจากโรงเรียน}<br/>
+        ที่อยู่: ${props.ตำบล} ${props.อำเภอ} ${props.จังหวัด}
+      `;
+      layer.bindPopup(popupContent);
+    },
+    pointToLayer: function (feature, latlng) {
+      return L.marker(latlng);
+    }
+  }).addTo(map);
+</script>
+
+</body>
+</html>

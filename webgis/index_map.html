@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>index_dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    body {
+      background-color: #f0f2f5;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    /* สไตล์สำหรับ wrapper ของปุ่ม Back to home */
+    .back-link-wrapper {
+      text-align: right; /* จัดปุ่มไปทางขวา */
+      padding: 15px; /* เพิ่ม padding รอบปุ่ม */
+      margin-bottom: 10px; /* เว้นระยะห่างจากบล็อกถัดไป (container) */
+    }
+
+    .dashboard-header {
+      background-color: rgb(155, 179, 195);
+      color: white;
+      padding: 1.5rem; /* กลับเป็นค่า padding เดิม */
+      border-radius: 0.5rem;
+      margin-bottom: 1rem;
+      text-align: center;
+      /* position: relative; ไม่จำเป็นแล้ว เนื่องจากปุ่มถูกย้ายออกไป */
+    }
+
+    .nav-buttons {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 1rem;
+    }
+
+    .nav-buttons button {
+      background-color: rgb(155, 179, 195);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background-color 0.3s ease;
+    }
+
+    .nav-buttons button:hover {
+      background-color: rgb(120, 145, 160);
+    }
+
+    .icon-link {
+      color: white;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .iframe-search-wrapper {
+      background-color: white;
+      padding: 1.5rem;
+      border-radius: 0.5rem;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    iframe {
+      width: 100%;
+      height: 600px; /* ปรับความสูงตามต้องการ */
+      border: 1px solid #ddd;
+      border-radius: 0.5rem;
+    }
+
+    /* ========================
+       back home (ใช้ร่วมได้) - สไตล์ที่คุณให้มา (ปรับแก้ให้ทำงานใน Flow ปกติ)
+    /* ======================== */
+    .back-link {
+      /* ไม่ต้องใช้ position: absolute, top, right แล้ว */
+      text-decoration: none;
+      background-color: white;
+      padding: 10px 15px;
+      border-radius: 20px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      color: #555;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      display: inline-flex; /* ใช้ inline-flex เพื่อจัดไอคอนและข้อความให้อยู่ในบรรทัดเดียวกัน */
+      align-items: center; /* จัดให้อยู่กึ่งกลางในแนวตั้ง */
+      gap: 5px; /* เพิ่มช่องว่างระหว่างไอคอนและข้อความ */
+    }
+
+    .back-link:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    }
+  </style>
+</head>
+<body>
+  <div class="back-link-wrapper">
+    <a href="index.html" class="back-link">🏠 Back to home</a>
+  </div>
+
+  <div class="container mt-4">
+    <div class="dashboard-header">
+      <h1>📊 ข้อมูลนักศึกษา 📊</h1>
+    </div>
+
+    <div class="nav-buttons">
+      <button onclick="loadPage('map-frame.html')" class="icon-link">🗺️ แผนที่</button>
+      <button onclick="loadPage('pie-chart.html')" class="icon-link">📊 แผนภูมิวงกลม</button>
+      <button onclick="loadPage('bar-chart.html')" class="icon-link">📊 แผนภูมิแท่ง</button>
+      <button onclick="loadPage('graphmap.html')" class="icon-link">📈 กราฟเส้น</button>
+      <button onclick="loadPage('mapdata.html')" class="icon-link">📋 ตารางข้อมูล</button>
+      <button onclick="loadPage('detail.html')" class="icon-link">รายละเอียด</button>
+      </div>
+
+    <div class="iframe-search-wrapper">
+      <div class="row mb-4">
+        <div class="col-lg-12">
+          <iframe id="contentFrame" src="map-frame.html"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    function loadPage(page) {
+      document.getElementById('contentFrame').src = page;
+      // ล้างค่าในช่องค้นหาเมื่อเปลี่ยนหน้า
+      document.getElementById('searchInput').value = '';
+    }
+
+    // ส่งคำค้นไปยัง iframe (ทำงานกับ mapdata.html เท่านั้น)
+    document.getElementById('searchButton').addEventListener('click', function () {
+      const term = document.getElementById('searchInput').value;
+      const contentFrame = document.getElementById('contentFrame');
+      // ตรวจสอบว่า iframe โหลด mapdata.html อยู่หรือไม่ก่อนส่งข้อความ
+      if (contentFrame.src.includes('mapdata.html')) {
+        contentFrame.contentWindow.postMessage({ type: 'search', term }, '*');
+      } else {
+        alert('ฟังก์ชันค้นหานี้ใช้ได้เฉพาะหน้า "ข้อมูล" เท่านั้น');
+      }
+    });
+
+    document.getElementById('resetButton').addEventListener('click', function () {
+      document.getElementById('searchInput').value = '';
+      const contentFrame = document.getElementById('contentFrame');
+      if (contentFrame.src.includes('mapdata.html')) {
+        contentFrame.contentWindow.postMessage({ type: 'reset' }, '*');
+      }
+    });
+
+    // โหลดหน้าเริ่มต้นเมื่อเข้าเว็บ
+    document.addEventListener('DOMContentLoaded', () => {
+      loadPage('map-frame.html'); // โหลดแผนที่เป็นหน้าแรก
+    });
+  </script>
+</body>
+</html>

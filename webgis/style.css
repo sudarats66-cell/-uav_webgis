@@ -1,0 +1,472 @@
+/* ========================
+   Import Google Font
+======================== */
+@import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap');
+
+/* ========================
+   Global Color Variables
+======================== */
+:root {
+  --dusty-blue: #9bb3c3;
+  --cream: rgb(245, 245, 240);
+  --dark-gray: rgb(50, 50, 50);
+  --white-color: #ffffff;
+}
+
+/* ========================
+   Global Styles
+======================== */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Kanit', sans-serif;
+  color: var(--dark-gray);
+  background-color: var(--cream);
+  text-align: center;
+  padding: 20px;
+}
+
+h1, h2, h3 {
+  color: var(--dusty-blue);
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* ========================
+   Homepage Theme
+======================== */
+body.homepage {
+  background-color: var(--cream);
+}
+
+.homepage-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 90vh;
+}
+
+.welcome-text {
+  font-size: 2.5em;
+  font-weight: 600;
+  color: var(--dusty-blue);
+  margin-bottom: 40px;
+}
+
+.icon-container {
+  display: flex;
+  gap: 30px;
+}
+
+.icon-link {
+  background-color: var(--dusty-blue);
+  color: var(--white-color);
+  padding: 25px 40px;
+  border-radius: 15px;
+  font-size: 1.2em;
+  font-weight: 400;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.icon-link:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+
+/* ========================
+   Profile Page Theme
+======================== */
+body.profile-page {
+  background-color: var(--cream);
+}
+
+.wrapper {
+  width: 90%;
+  max-width: 960px;
+  margin: auto;
+}
+
+.container {
+  display: flex;
+  background-color: var(--white-color);
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  overflow: hidden;
+  min-height: 600px;
+}
+
+.left, .right {
+  flex: 1;
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.left {
+  align-items: center;
+  border-right: 1px solid var(--dusty-blue);
+  text-align: center;
+}
+
+.left img {
+  width: 220px;
+  height: 300px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 4px solid var(--dusty-blue);
+  margin-bottom: 20px;
+}
+
+.name {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-top: 10px;
+}
+
+.position {
+  font-size: 1rem;
+  color: var(--dusty-blue);
+}
+
+.contact {
+  margin-top: 20px;
+  font-size: 0.95rem;
+}
+
+.contact a {
+  color: var(--dark-gray);
+}
+
+.social-links {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.social-links a {
+  color: var(--dusty-blue);
+  font-size: 24px;
+  border: 2px solid #e0e0e0;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.social-links a:hover {
+  background-color: var(--dusty-blue);
+  border-color: var(--dusty-blue);
+  color: var(--white-color);
+  transform: translateY(-5px);
+}
+
+.section {
+  margin-bottom: 20px;
+}
+
+.section h3 {
+  color: var(--dusty-blue);
+  font-size: 1.1rem;
+  margin-bottom: 10px;
+  border-bottom: 2px solid var(--dusty-blue);
+  padding-bottom: 4px;
+}
+
+.section p {
+  font-size: 0.95rem;
+  margin: 4px 0;
+}
+
+
+
+/* ========================
+   Activities Page Theme
+======================== */
+body.activities-page {
+  background-color: var(--cream);
+}
+
+.activities-container {
+  max-width: 1000px;
+  margin: auto;
+  text-align: center;
+}
+
+.activities-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 30px;
+  margin-top: 30px;
+}
+
+.activity-card {
+  background-color: var(--white-color);
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  transition: transform 0.2s ease;
+}
+
+.activity-card:hover {
+  transform: translateY(-5px);
+}
+
+.activity-img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 10px;
+  margin-bottom: 15px;
+}
+
+.activity-card h3 {
+  color: var(--dusty-blue);
+  margin: 10px 0 5px;
+}
+
+.activity-card p {
+  font-size: 1em;
+  color: var(--dark-gray);
+}
+
+/* ========================
+   Dashboard Page Theme
+======================== */
+body.dashboard-page {
+  background-color: #728199;
+  color: #f1f5f9;
+}
+
+.dashboard-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  max-width: 1400px;
+  margin: auto;
+}
+
+.dashboard-header {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.dashboard-header h1 {
+  color: white;
+}
+
+.card {
+  background-color: #28374d;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+.card h3 {
+  color: #cbd5e1;
+  margin-top: 0;
+  border-bottom: 1px solid #475569;
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+}
+
+.map-card {
+  grid-column: 1 / 3;
+  grid-row: 2 / 4;
+}
+
+.map-image {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin-top: 15px;
+}
+
+.bar-chart {
+  height: 200px;
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.bar {
+  background-color: #3b82f6;
+  flex-grow: 1;
+  border-radius: 5px 5px 0 0;
+  position: relative;
+}
+
+.bar::after {
+  content: attr(data-label);
+  position: absolute;
+  bottom: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.8em;
+}
+
+.gender-card {
+  text-align: center;
+}
+
+.gender-split {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.gender-item i {
+  font-size: 3em;
+}
+
+.gender-item h4 {
+  color: white;
+  margin: 10px 0 5px;
+}
+
+.donut-chart-container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.donut-chart {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  background: conic-gradient(#eab308 0% 75%, #22c55e 75% 100%);
+}
+
+.donut-center-label {
+  position: absolute;
+  background-color: #28374d;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.5em;
+  font-weight: bold;
+}
+
+.donut-center-label span {
+  font-size: 0.5em;
+  font-weight: normal;
+  color: #cbd5e1;
+}
+
+.chart-legend {
+  margin-top: 15px;
+  font-size: 0.9em;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  text-align: left;
+  padding-left: 20px;
+}
+
+.chart-legend i {
+  margin-right: 8px;
+}
+
+.horizontal-bar-group {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 10px;
+  align-items: center;
+  font-size: 0.9em;
+}
+
+.h-bar {
+  height: 15px;
+  border-radius: 5px;
+}
+
+/* ========================
+   Back Link (ใช้ร่วมได้)
+======================== */
+.back-link {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  text-decoration: none;
+  background-color: white;
+  padding: 10px 15px;
+  border-radius: 20px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  color: #555;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.back-link:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background-color: #f5f5f0;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.login-container, .logout-container {
+  background: white;
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.1);
+  text-align: center;
+}
+
+input {
+  display: block;
+  margin: 10px auto;
+  padding: 10px;
+  width: 80%;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+}
+
+button, .btn, .logout-btn {
+  background-color: #9bb3c3;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 10px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+button:hover, .btn:hover, .logout-btn:hover {
+  background-color: #7a99ad;
+}
+
+

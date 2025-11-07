@@ -1,0 +1,60 @@
+<script src="agi67.js"></script>
+
+<canvas id="barChart" width="600" height="400"></canvas>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const ctx = document.getElementById('barChart').getContext('2d');
+
+// สร้างอ็อบเจกต์นับจำนวนนักเรียนต่อหลักสูตร
+const counts = {};
+myData.features.forEach(feature => {
+  let course = feature.properties.หลักสูตร.trim(); // ลบช่องว่างหัวท้าย
+  if (!counts[course]) {
+    counts[course] = 0;
+  }
+  counts[course]++;
+});
+
+// สร้าง labels และ data สำหรับ Chart.js
+const labels = Object.keys(counts);
+const data = Object.values(counts);
+
+new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: labels,
+    datasets: [{
+      label: 'จำนวนนักเรียน',
+      data: data,
+      backgroundColor: [
+        '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#8BC34A'
+      ]
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      title: {
+        display: true,
+        text: 'จำนวนนักเรียนในแต่ละหลักสูตร'
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        title: {
+          display: true,
+          text: 'จำนวน (คน)'
+        }
+      },
+      x: {
+        title: {
+          display: true,
+          text: 'หลักสูตร'
+        }
+      }
+    }
+  }
+});
+</script>

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Logout - Rae's Space</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="logout-container">
+    <h2>ออกจากระบบแล้ว</h2>
+    <p>ขอบคุณที่เข้ามาเยี่ยม Rae’s Space 💫</p>
+    <a href="login.html" class="btn">เข้าสู่ระบบอีกครั้ง</a>
+  </div>
+
+  <script>
+    // เคลียร์สถานะล็อกอิน
+    localStorage.removeItem("loggedIn");
+  </script>
+</body>
+</html>

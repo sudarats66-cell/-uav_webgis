@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Rae's Space</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="login-container">
+    <h2>เข้าสู่ระบบ</h2>
+    <form id="loginForm">
+      <label for="username">ชื่อผู้ใช้:</label>
+      <input type="text" id="username" required>
+
+      <label for="password">รหัสผ่าน:</label>
+      <input type="password" id="password" required>
+
+      <button type="submit">เข้าสู่ระบบ</button>
+    </form>
+    <p id="login-message"></p>
+  </div>
+
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const user = document.getElementById('username').value;
+      const pass = document.getElementById('password').value;
+
+      // ตัวอย่างจำลอง (ในโปรเจกต์จริงควรใช้ backend)
+      if (user === "rae" && pass === "1234") {
+        localStorage.setItem("loggedIn", "true");
+        window.location.href = "index.html";
+      } else {
+        document.getElementById('login-message').textContent = "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง";
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>กราฟวงกลม: สัดส่วนนักเรียนต่อภาควิชา</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="agi67.js"></script> <!-- โหลดไฟล์ข้อมูล -->
+<style>
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    margin: 0;
+    background-color: #f8fafc;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+  #chartContainer {
+    width: 90%;
+    max-width: 600px;
+  }
+</style>
+</head>
+<body>
+
+<div id="chartContainer">
+  <canvas id="myChart"></canvas>
+</div>
+
+<script>
+window.onload = () => {
+  const ctx = document.getElementById('myChart').getContext('2d');
+
+  // นับจำนวนนักเรียนในแต่ละภาควิชา
+  const counts = {};
+  myData.features.forEach(feature => {
+    const dept = feature.properties.ภาควิชา.trim();
+    if (!counts[dept]) counts[dept] = 0;
+    counts[dept]++;
+  });
+
+  const labels = Object.keys(counts);
+  const data = Object.values(counts);
+
+  const colors = [
+    'rgba(54, 162, 235, 0.7)',
+    'rgba(255, 99, 132, 0.7)',
+    'rgba(255, 206, 86, 0.7)',
+    'rgba(75, 192, 192, 0.7)',
+    'rgba(153, 102, 255, 0.7)',
+    'rgba(255, 159, 64, 0.7)',
+    'rgba(99, 255, 132, 0.7)'
+  ];
+
+  new Chart(ctx, {
+    type: 'pie',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'สัดส่วน',
+        data: data,
+        backgroundColor: colors,
+        borderColor: '#fff',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'bottom' },
+        title: {
+          display: true,
+          text: 'สัดส่วนนักเรียนในแต่ละภาควิชา'
+        }
+      }
+    }
+  });
+};
+</script>
+
+</body>
+</html>

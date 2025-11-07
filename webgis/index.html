@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="th"> 
+<head>
+    <meta charset="UTF-8"> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+    <title>Welcome to Rae's Space</title> 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css"> 
+</head> 
+<body> 
+    <div class="homepage-container"> 
+        <div class="welcome-text"> 
+            Welcome to Rae's Space! 
+        </div>
+        <div class="icon-container">
+            <a href="profile.html" class="icon-card">
+                <span class="icon">👤</span>
+                <h3>About Me</h3>
+                <div class="card-text">
+                    <p>ข้อมูลส่วนตัวและประวัติการศึกษา</p>
+                </div>
+            </a>
+
+            <a href="schedule.html" class="icon-card">
+                <span class="icon">🗓️</span>
+                <h3>My Schedule</h3>
+                <div class="card-text">
+                    <p>ดูตารางเรียนของฉันประจำสัปดาห์</p>
+                </div>
+            </a>
+
+            <a href="activities.html" class="icon-card">
+                <span class="icon">🎯</span>
+                <h3>My Activities</h3>
+                <div class="card-text">
+                    <p>รวมผลงานและกิจกรรมต่าง ๆ</p>
+                </div>
+            </a>
+
+            <a href="index_map.html" class="icon-card">
+                <span class="icon">🗺️</span>
+                <h3>Map Student 66</h3>
+                <div class="card-text">
+                    <p>ดูแผนที่ตำแหน่งนิสิตรุ่น 66</p>
+                </div>
+            </a>
+
+            <a href="agi.html" class="icon-card">
+                <span class="icon">📍</span>
+                <h3>Map Student 64–67</h3>
+                <div class="card-text">
+                    <p>รวมข้อมูลแผนที่นิสิตรุ่น 64 ถึง 67</p>
+                </div>
+            </a>
+
+            <a href="test.html" class="icon-card">
+                <span class="icon">🏨</span>
+                <h3>Map Hotel in Lampang</h3>
+                <div class="card-text">
+                    <p>แนะนำที่พักในจังหวัดลำปาง</p>
+                </div>
+            </a>
+
+            <a href="test_map.html" class="icon-card">
+                <span class="icon">📌</span>
+                <h3>Map</h3>
+                <div class="card-text">
+                    <p>ดูแผนที่ทั่วไปของพื้นที่</p>
+                </div>
+            </a>
+        </div>
+
+    
+        <div style="position:absolute; top:20px; right:20px;">
+  <a href="logout.html" class="logout-btn">Logout</a>
+</div>
+
+
+<script>
+  // ถ้าไม่ได้ล็อกอิน → เด้งกลับไปหน้า login
+  if (localStorage.getItem("loggedIn") !== "true") {
+    window.location.href = "login.html";
+  }
+</script>
+
+</body>
+</html>
+   

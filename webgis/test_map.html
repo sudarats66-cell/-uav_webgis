@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Enhanced Web GIS Dashboard</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-ajax/2.1.0/leaflet.ajax.min.js"></script>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+
+  <style>
+    /* General Page Styling */
+    body {
+      font-family: 'Poppins', sans-serif;
+      margin: 0;
+      background-color: #f0f2f5;
+      color: #333;
+      overflow: hidden; /* Prevent scrolling */
+    }
+
+    /* Header Styling */
+    header {
+      background-color: #ffffff;
+      padding: 15px 30px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      text-align: center;
+      border-bottom: 3px solid #4a90e2;
+    }
+    header h1 {
+      margin: 0;
+      color: #4a90e2;
+      font-weight: 600;
+      font-size: 1.8em;
+    }
+
+    /* Map Container Styling */
+    #map {
+      height: calc(100vh - 85px); /* Adjust height to fill viewport */
+      width: 98%;
+      margin: 15px auto;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      border: 1px solid #ddd;
+    }
+
+    /* Custom Popup Styling */
+    .leaflet-popup-content-wrapper {
+      background: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    .leaflet-popup-content {
+      font-size: 14px;
+      line-height: 1.6;
+      margin: 15px 20px !important;
+    }
+    .leaflet-popup-content b {
+      color: #4a90e2;
+    }
+    
+    /* Style for the "Search by Distance" form in the popup */
+    .search-popup-form h3 {
+        margin-top: 0;
+        color: #333;
+    }
+    .search-popup-form input[type="number"],
+    .search-popup-form input[type="text"] {
+      width: 95%;
+      padding: 8px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-family: 'Poppins', sans-serif;
+    }
+    .search-popup-form button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      background-color: #4a90e2;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    .search-popup-form button:hover {
+      background-color: #357abd;
+    }
+    
+    /* Layer Control Styling */
+    .leaflet-control-layers {
+      border-radius: 8px;
+      box-shadow: 0 1px 5px rgba(0,0,0,0.2);
+      border: 1px solid #ccc;
+    }
+    
+    /* Class to remove default styling from DivIcon */
+    .custom-div-icon {
+        background: none;
+        border: none;
+    }
+
+    /* === NEW: Legend CSS === */
+    .info.legend {
+        padding: 8px 10px;
+        background: white;
+        background: rgba(255,255,255,0.85);
+        box-shadow: 0 0 15px rgba(0,0,0,0.2);
+        border-radius: 5px;
+        line-height: 18px;
+        color: #555;
+    }
+    .info.legend h4 {
+        margin: 0 0 5px;
+        color: #333;
+        font-size: 14px;
+        text-align: center;
+    }
+    .info.legend i {
+        width: 18px;
+        height: 18px;
+        float: left;
+        margin-right: 8px;
+        border-radius: 3px;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1><i class="fa-solid fa-map-location-dot"></i> Thailand Web GIS Dashboard</h1>
+  </header>
+  <div id="map"></div>
+
+  <script>
+    // สร้างแผนที่และตั้งจุดเริ่มต้น
+    var map = L.map('map').setView([16.744, 100.191], 13);
+    var marker_arr = []; // Array to store markers
+
+    // ================= Base Maps =================
+    var wikimediaMap = L.tileLayer('https://maps.wikimedia.org/osm-intl/{z}/{x}/{y}{r}.png', {
+      maxZoom: 19,
+      attribution: '<a href="https://wikimediafoundation.org/wiki/Maps_Terms_of_Use">Wikimedia</a>'
+    }).addTo(map);
+
+    var google_map = L.tileLayer('https://mt1.google.com/vt/lyrs=r&x={x}&y={y}&z={z}', { maxZoom: 18, attribution: 'Google Maps' });
+    var openstreetmap = L.tileLayer('http://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: 'OpenStreetMap' });
+    var EsriWorldStreetMap = L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', { maxZoom: 18, attribution: 'Esri' });
+    var EsriWorldImagery = L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 18, attribution: 'Esri' });
+    var cartoLight = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom: 19, subdomains: ['a', 'b', 'c', 'd'], attribution: '&copy; CartoDB' });
+    var cartoDark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19, subdomains: ['a', 'b', 'c', 'd'], attribution: '&copy; CartoDB' });
+    var openTopoMap = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', { maxZoom: 17, attribution: 'Map data: &copy; OpenStreetMap contributors, SRTM | Map style: &copy; OpenTopoMap (CC-BY-SA)' });
+    
+    // ============ [WMS Layers] ============
+    var plk_amphoe = L.tileLayer.wms('http://localhost:8080/geoserver/geo42/wms', { layers: 'geo42:districtutt', format: 'image/png', transparent: true, tiled: true, attribution: 'GeoServer WMS' });
+    var utt_road = L.tileLayer.wms('http://localhost:8080/geoserver/geo42/wms', { layers: 'geo42:roadutt3', format: 'image/png', transparent: true, tiled: true, attribution: 'GeoServer WMS' });
+    var utt_gcp = L.tileLayer.wms('http://localhost:8080/geoserver/geo42/wms', { layers: 'geo42:gcputt', format: 'image/png', transparent: true, tiled: true, attribution: 'GeoServer WMS' });
+
+    // =============== Custom Icons ===============
+    var buildingIcon = L.icon({
+      iconUrl: 'https://img.lovepik.com/png/20231115/hospital-building-clipart-3d-isometric-illustration-medical-office-building-with_597059_wh1200.png',
+      iconSize: [50, 50], iconAnchor: [25, 50], popupAnchor: [0, -50]
+    });
+    
+    var nakhonSawanIcon = L.divIcon({
+      html: '<i class="fa-solid fa-water fa-2x" style="color: #0077b6;"></i>',
+      className: 'custom-div-icon', iconSize: [30, 42], iconAnchor: [15, 42], popupAnchor: [0, -35]
+    });
+
+    var marker = L.marker([16.746, 100.1959], { icon: buildingIcon }).bindPopup("คณะเกษตรศาสตร์ฯ มหาวิทยาลัยนเรศวร");
+    var circle = L.circle([16.746, 100.1959], { radius: 200, color: "blue", fillOpacity: 0.2 });
+    var polyline = L.polyline([[16.742, 100.180], [16.735, 100.189], [16.735, 100.190], [16.739, 100.189]], { color: 'red' });
+    var polygon = L.polygon([[16.752, 100.176], [16.743, 100.176], [16.743, 100.190], [16.752, 100.190]], { color: 'green' });
+
+    function popUp(f, l) {
+      var out = [];
+      if (f.properties) { for (key in f.properties) { out.push(key + ": " + f.properties[key]); } l.bindPopup(out.join("<br />")); }
+    }
+
+    var ThaiProvJSON = L.layerGroup();
+    fetch('thailand_province.geojson')
+      .then(response => response.json())
+      .then(data => { L.geoJSON(data, { onEachFeature: popUp }).addTo(ThaiProvJSON); })
+      .catch(error => { console.error('Error loading GeoJSON:', error); });
+
+    map.on("click", function (e) {
+      if (marker_arr.length > 0) { for (var i = 0; i < marker_arr.length; i++) { map.removeLayer(marker_arr[i]); } marker_arr = []; }
+      var ct = "<div class='search-popup-form'><center><h3>Search By Distance</h3></center>Lat: <input type='number' id='lat' value=" + e.latlng.lat.toFixed(6) + "><br>Lng: <input type='number' id='lng' value=" + e.latlng.lng.toFixed(6) + "><br>Distance: <input type='text' id='distance' placeholder='e.g., 500 meters'><br><center><button onclick='sendtodb();'>Search</button></center></div>";
+      var newMarker = new L.Marker([e.latlng.lat, e.latlng.lng]).addTo(map).bindPopup(ct).openPopup();
+      marker_arr.push(newMarker);
+    });
+
+    window.sendtodb = function() {
+      var lat = document.getElementById('lat').value;
+      var lng = document.getElementById('lng').value;
+      var distance = document.getElementById('distance').value;
+      alert("Data to send:\nLat: " + lat + "\nLng: " + lng + "\nDistance: " + distance);
+    };
+
+    // ---------- Add API Layer (Thaiwater) ----------
+    var thaiwaterLayer = L.layerGroup();
+    var rain24hLayer = L.layerGroup();
+
+    // === NEW: Function to get color based on rain value ===
+    // เข้มคือมาก, อ่อนคือน้อย
+    function getColor(rain) {
+        if (rain > 90) return '#800026';   // > 90 mm (หนักมาก)
+        if (rain > 35) return '#BD0026';   // 35.1 - 90 mm (หนัก)
+        if (rain > 10) return '#F03B20';   // 10.1 - 35 mm (ปานกลาง)
+        if (rain > 0) return '#FED976';    // 0.1 - 10 mm (เล็กน้อย)
+        return '#70A9FF';                  // 0 mm (ไม่มีฝน)
+    }
+
+    function loadAPIData() {
+      // Nakhon Sawan data (fixed blue icon)
+      $.getJSON("https://api-v3.thaiwater.net/api/v1/thaiwater30/public/thailand_main_rain?province_code=60", function(res){
+        if(res.result==="OK"){
+          res.data.forEach(function(d){
+            if(d.station && d.station.tele_station_lat && d.station.tele_station_long){
+              var lat=parseFloat(d.station.tele_station_lat), lng=parseFloat(d.station.tele_station_long);
+              if(!isNaN(lat) && !isNaN(lng)){
+                var popup = "<b>สถานี:</b> "+d.station.tele_station_name.th+"<br><b>จังหวัด:</b> "+d.geocode.province_name.th+"<br><b>ฝนสะสม 24 ชม.:</b> "+d.rain_24h+" มม."+"<br><b>เวลา:</b> "+d.rainfall_datetime;
+                L.marker([lat,lng], { icon: nakhonSawanIcon }).bindPopup(popup).addTo(thaiwaterLayer);
+              }
+            }
+          });
+        }
+      });
+
+      // Nationwide data (dynamic color icon)
+      $.getJSON("https://api-v3.thaiwater.net/api/v1/thaiwater30/public/rain_24h", function(res){
+        if(res.result==="OK"){
+          res.data.forEach(function(d){
+            if(d.station && d.station.tele_station_lat && d.station.tele_station_long){
+              var lat=parseFloat(d.station.tele_station_lat), lng=parseFloat(d.station.tele_station_long);
+              if(!isNaN(lat) && !isNaN(lng)){
+                var rain = parseFloat(d.rain_24h);
+                var iconColor = getColor(rain);
+
+                // === UPDATED: Create icon with dynamic color ===
+                var rainIcon = L.divIcon({
+                    html: `<i class="fa-solid fa-cloud-showers-heavy fa-2x" style="color: ${iconColor}; text-shadow: 1px 1px 2px #fff;"></i>`,
+                    className: 'custom-div-icon',
+                    iconSize: [30, 42],
+                    iconAnchor: [15, 42],
+                    popupAnchor: [0, -35]
+                });
+                
+                var popup = "<b>สถานี:</b> "+d.station.tele_station_name.th+"<br><b>จังหวัด:</b> "+d.geocode.province_name.th+"<br><b>ฝนสะสม 24 ชม.:</b> "+d.rain_24h+" มม."+"<br><b>เวลา:</b> "+d.rainfall_datetime;
+                L.marker([lat,lng], { icon: rainIcon }).bindPopup(popup).addTo(rain24hLayer);
+              }
+            }
+          });
+        }
+      });
+    }
+    loadAPIData();
+
+    // ============ Layer Control =============
+    var baselayers = {
+      "Wikimedia": wikimediaMap, "Google Map": google_map, "OpenStreetMap": openstreetmap,
+      "Esri Street": EsriWorldStreetMap, "Esri Imagery": EsriWorldImagery, "Carto Light": cartoLight,
+      "Carto Dark": cartoDark, "OpenTopoMap": openTopoMap
+    };
+    var overlays = {
+      "จุด (คณะเกษตร)": marker, "เส้น": polyline, "สี่เหลี่ยม": polygon, "วงกลม": circle,
+      "ขอบเขตจังหวัด (GeoJSON)": ThaiProvJSON, "ขอบเขตอําเภอ (GeoServer)": plk_amphoe,
+      "ถนน (GeoServer)": utt_road, "GCP (GeoServer)": utt_gcp,
+      "สถานีฝน (นครสวรรค์)": thaiwaterLayer, "สถานีฝน (ทั่วประเทศ)": rain24hLayer
+    };
+    L.control.layers(baselayers, overlays).addTo(map);
+
+    // === NEW: Legend Control ===
+    var legend = L.control({position: 'bottomright'});
+    legend.onAdd = function (map) {
+        var div = L.DomUtil.create('div', 'info legend'),
+            grades = [0, 10, 35, 90], // ช่วงค่าของปริมาณฝน
+            labels = ['<strong>ปริมาณฝน 24 ชม. (มม.)</strong>'],
+            from, to;
+
+        // วนลูปเพื่อสร้างแถบสีและคำอธิบาย
+        for (var i = 0; i < grades.length; i++) {
+            from = grades[i];
+            to = grades[i + 1];
+            labels.push(
+                '<i style="background:' + getColor(from + 1) + '"></i> ' +
+                from + (to ? '&ndash;' + to : '+')
+            );
+        }
+        // เพิ่ม "ไม่มีฝน" แยกต่างหาก
+        labels.push('<i style="background:' + getColor(0) + '"></i> ไม่มีฝน');
+        
+        div.innerHTML = labels.join('<br>');
+        return div;
+    };
+    legend.addTo(map);
+
+  </script>
+</body>
+</html>

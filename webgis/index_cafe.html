@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <title>☕ แผนที่ร้านกาแฟ จังหวัดพิษณุโลก</title>
+
+  <!-- Fonts + Icons + Leaflet -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+
+  <!-- เพิ่มไฟล์ CSS ภายนอก -->
+  <link rel="stylesheet" href="styles_cafe.css">
+</head>
+
+<body>
+  <!-- Header / Top frame -->
+  <header class="site-header">
+    <div class="header-left">
+      <div class="brand-logo" aria-hidden="true">☕</div>
+      <div class="header-title">
+        <h1>แผนที่ร้านกาแฟ จังหวัดพิษณุโลก</h1>
+        <p>  รวมร้านเด็ดในจังหวัด</p>
+      </div>
+    </div>
+
+    <div class="header-actions" role="toolbar" aria-label="header actions">
+      <div class="icon-btn" title="Layer control">
+        <i class="fa-solid fa-layer-group"></i>
+      </div>
+      <div class="icon-btn" title="About">
+        <i class="fa-solid fa-circle-info"></i>
+      </div>
+    </div>
+  </header>
+
+  <div id="map"></div>
+
+  <!-- Toggle button for panel -->
+  <button class="toggle-panel-btn" id="togglePanelBtn" aria-expanded="true">
+    <i class="fa-solid fa-magnifying-glass-location"></i>
+    <span style="font-weight:600">ค้นหาร้าน</span>
+  </button>
+
+  <!-- Query panel (bottom-left) -->
+  <div class="query-panel" id="queryPanel" role="region" aria-label="ค้นหาร้านใกล้ฉัน">
+    <h3>
+      <span><i class="fa-solid fa-search-location"></i> ค้นหาร้านใกล้ฉัน</span>
+      <button id="closePanel" style="background:none;border:none;font-size:14px;cursor:pointer" title="ปิด">✕</button>
+    </h3>
+
+    <label for="distance">รัศมี (เมตร):</label>
+    <input type="number" id="distance" value="1000" min="100" max="5000" step="100" />
+
+    <div style="display:flex;gap:8px;">
+      <button id="search-btn" class="btn"><i class="fa-solid fa-magnifying-glass-location"></i> เริ่มค้นหา</button>
+      <button id="reset-btn" class="btn secondary"><i class="fa-solid fa-rotate-left"></i> รีเซ็ต</button>
+    </div>
+
+    <div style="margin-top:8px;font-size:13px;color:#666;">
+      คลิกแผนที่เพื่อเลือกจุดค้นหา | ดับเบิ้ลคลิกเพื่อเพิ่มร้านใหม่
+    </div>
+  </div>
+
+  <div class="site-footer">
+    <i class="fa-solid fa-map-location-dot"></i> แสดงข้อมูลจากฐานข้อมูลร้านกาแฟ — คลิกปักหมุดเพื่อดูรายละเอียด
+  </div>
+
+  <script>
+    // =========================
+    // Map Initialization (เหมือนเดิม)
+    // =========================
+    var map = L.map('map').setView([16.812063159227716, 100.25759788323138], 11);
+
+    var baseLayers = {
+      "OpenStreetMap": L.tileLayer
+      ('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 19, attribution: '© OpenStreetMap contributors'
+      }).addTo(map),
+      
+      "Carto Light": L.tileLayer
+      ('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }),
+
+      "Esri Imagery": L.tileLayer
+      ('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}')
+    };
+
+    // =========================
+    // แสดงร้านกาแฟทั้งหมด
+    // =========================
+    var coffeeLayer = L.layerGroup().addTo(map);
+    fetch("json_sql.php")
+      .then(res => res.json())
+      .then(data => {
+        L.geoJSON(data, {
+          pointToLayer: (f, latlng) => L.circleMarker(latlng, {
+            radius: 6, color: "#6B4F3B", fillColor: "#C19A6B", fillOpacity: 0.9
+          }),
+          onEachFeature: (f, layer) => {
+            layer.bindPopup(`
+              <b>${f.properties.name}</b><br>
+              ${f.properties.address || '-'}<br>
+              ⭐ ${f.properties.rating || '-'} คะแนน
+            `);
+          }
+        }).addTo(coffeeLayer);
+      });
+
+    var markerClick = null;
+    var nearbyLayer = null;
+
+    function findNearby(lat, lng, distance) {
+      if (nearbyLayer) map.removeLayer(nearbyLayer);
+
+      fetch(`query.php?lat=${lat}&lng=${lng}&distance=${distance}`)
+        .then(res => res.json())
+        .then(data => {
+          if (!data.features || data.features.length === 0) {
+            alert("❌ ไม่พบร้านกาแฟในรัศมีนี้");
+            return;
+          }
+
+          nearbyLayer = L.geoJSON(data, {
+            onEachFeature: (f, layer) => {
+              const coords = f.geometry.coordinates;
+              const lat = coords[1].toFixed(5);
+              const lng = coords[0].toFixed(5);
+              const dist = f.properties.distance_m.toLocaleString();
+              layer.bindPopup(`
+                <b>ชื่อร้าน:</b> ${f.properties.name}<br>
+                <b>พิกัด:</b> ${lat}, ${lng}<br>
+                <b>ที่อยู่:</b> ${f.properties.address || '-'}<br>
+                ⭐ ${f.properties.rating || '-'} คะแนน<br>
+                📏 ระยะทาง: ${dist} เมตร
+              `);
+            },
+            pointToLayer: (f, latlng) => L.marker(latlng, {
+              icon: L.icon({
+                iconUrl: "https://cdn-icons-png.flaticon.com/512/3565/3565418.png",
+                iconSize: [36, 36],
+                iconAnchor: [18, 36],
+                popupAnchor: [0, -36]
+              })
+            })
+          }).addTo(map);
+
+          map.fitBounds(nearbyLayer.getBounds(), { padding: [40, 40] });
+        })
+        .catch(err => console.error("Query error:", err));
+    }
+
+    // =========================
+    // คลิกเพื่อเลือกจุดค้นหา
+    // =========================
+    var clickPoint = null;
+    map.on("click", e => {
+      if (clickPoint) map.removeLayer(clickPoint);
+      if (nearbyLayer) map.removeLayer(nearbyLayer);
+
+      clickPoint = L.marker(e.latlng).addTo(map)
+        .bindPopup("📍 จุดค้นหา<br>Lat: " + e.latlng.lat.toFixed(5) + "<br>Lng: " + e.latlng.lng.toFixed(5))
+        .openPopup();
+
+      document.getElementById("search-btn").onclick = function() {
+        const dist = parseFloat(document.getElementById("distance").value);
+        findNearby(e.latlng.lat, e.latlng.lng, dist);
+      };
+    });
+
+    // ปุ่มรีเซ็ต
+    document.getElementById("reset-btn").onclick = function() {
+      if (clickPoint) map.removeLayer(clickPoint);
+      if (nearbyLayer) map.removeLayer(nearbyLayer);
+      map.setView([18.288, 99.507], 11);
+    };
+
+    // =========================
+    // ดับเบิ้ลคลิก: เพิ่มร้านใหม่ (เหมือนเดิม)
+    // =========================
+    map.on("dblclick", e => {
+      const lat = e.latlng.lat;
+      const lng = e.latlng.lng;
+      const formHtml = `
+        <div style="text-align:center;">
+          <h3>เพิ่มร้านกาแฟใหม่</h3>
+          <input type='text' id='name' placeholder='ชื่อร้าน' style='margin:6px 0; padding:6px; width:90%'><br>
+          <input type='text' id='address' placeholder='ที่อยู่' style='margin:6px 0; padding:6px; width:90%'><br>
+          <input type='number' id='rating' placeholder='คะแนน (0-5)' step='0.1' min='0' max='5' style='margin:6px 0; padding:6px; width:90%'><br>
+          <button onclick='insertCoffee(${lat}, ${lng})' style='padding:8px 10px;border-radius:8px;background:#5a3f36;color:#fff;border:none;'>บันทึก</button>
+        </div>`;
+      L.popup().setLatLng(e.latlng).setContent(formHtml).openOn(map);
+    });
+
+    function insertCoffee(lat, lng) {
+      const name = $("#name").val();
+      const address = $("#address").val();
+      const rating = $("#rating").val();
+
+      if (!name) return alert("กรุณากรอกชื่อร้าน");
+
+      $.ajax({
+        url: "insert.php",
+        type: "POST",
+        data: { name, address, latitude: lat, longitude: lng, rating },
+        success: function() {
+          alert("✅ เพิ่มร้านสำเร็จ!");
+          location.reload();
+        },
+        error: function(err) {
+          console.error("Insert error:", err);
+          alert("❌ เพิ่มร้านไม่สำเร็จ!");
+        }
+      });
+    }
+
+    // Layer Control
+    L.control.layers(baseLayers, { "ร้านกาแฟ": coffeeLayer }).addTo(map);
+
+    // =========================
+    // Toggle panel (open/close) JS
+    // =========================
+    const toggleBtn = document.getElementById('togglePanelBtn');
+    const queryPanel = document.getElementById('queryPanel');
+    const closePanel = document.getElementById('closePanel');
+
+    function openPanel() {
+      queryPanel.classList.remove('hidden');
+      toggleBtn.setAttribute('aria-expanded','true');
+    }
+    function closePanelFn() {
+      queryPanel.classList.add('hidden');
+      toggleBtn.setAttribute('aria-expanded','false');
+    }
+
+    toggleBtn.addEventListener('click', () => {
+      if (queryPanel.classList.contains('hidden')) openPanel();
+      else closePanelFn();
+    });
+    closePanel.addEventListener('click', closePanelFn);
+
+    // default: panel เปิดอยู่ (ถ้ต้องการให้ปิดโดยค่าเริ่มต้น ให้เรียก closePanelFn() ที่นี่)
+    // closePanelFn();
+  </script>
+</body>
+</html>
